@@ -1,30 +1,29 @@
 package com.swells.ba
 
-import model.MusicIndex
+import model.{Indexes, MusicIndex}
 import org.scalatra._
 import scalax.file.{Path, FileSystem}
 
 class UI extends ScalatraServlet {
 
   get("/") {
-    val p = Path("/Users/steppenwells/Music/iTunes/iTunes Music", '/')
-//    val p = Path("/Volumes/Public/Shared Music", '/')
-    tree( p )
-
-    <html>
-      <body>
-        <h1>Hello, world!</h1>
-      </body>
-    </html>
+    redirect("/indexes")
   }
 
-  post("addIndex") {
+  get("/indexes") {
+    html.indexList.render(Indexes.knownIndexes)
+  }
+
+  post("/addIndex") {
 
     val name = params("name")
     val rootPath = params("path")
 
     val index = MusicIndex.apply(Path(rootPath, '/'))
+    Indexes.registerIndex(name, index)
+    Indexes.flush
 
+    redirect("/indexes")
   }
 
   def tree(root: Path, depth: Int = 0) {

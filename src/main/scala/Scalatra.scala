@@ -1,4 +1,5 @@
 import com.swells.ba._
+import model.Indexes
 import org.scalatra._
 import javax.servlet.ServletContext
 
@@ -9,6 +10,8 @@ import javax.servlet.ServletContext
  */
 class Scalatra extends LifeCycle {
   override def init(context: ServletContext) {
+
+    try {Indexes.init} catch {case e => e.printStackTrace()}
 
     // Mount one or more servlets
     context.mount(new UI, "/*")

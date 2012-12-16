@@ -1,0 +1,25 @@
+@(indexes: List[com.swells.ba.model.NamedMusicIndex])
+
+@main("Bohemian Appsody - indexes") {
+<div class="container">
+
+    <div class="row">
+        current indexes:
+        <ul>
+        @for(i <- indexes) {
+            <li><strong>@i.name</strong> @i.index.root</li>
+        }
+        </ul>
+        <form method="POST" action="addIndex" class="form-inline">
+          <input type="text" class="input-small" placeholder="name" name="name">
+          <input type="text" class="input-large" placeholder="path" name="path">
+
+          <button type="submit" class="btn">register</button>
+          <p>Note that the path should be where your musuc library is on your computer. This could be a full
+          path to a local directory or if you are adding a network path this will be the mount path
+          (typically under /Volumes/ on mac, /mnt/ on unix and ?: on windows.)</p>
+          <p>Please use the '/' character as the path separator, even on windows (for now).</p>
+        </form>
+    </div>
+</div>
+}
