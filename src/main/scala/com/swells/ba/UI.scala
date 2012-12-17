@@ -14,6 +14,13 @@ class UI extends ScalatraServlet {
     html.indexList.render(Indexes.knownIndexes)
   }
 
+  post("/refreshIndex") {
+    val name = params("name")
+    Indexes.refresh(name)
+
+    redirect("/indexes")
+  }
+
   post("/addIndex") {
 
     val name = params("name")

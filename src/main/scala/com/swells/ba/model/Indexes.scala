@@ -31,6 +31,15 @@ object Indexes {
     }
   }
 
+  def refresh(name: String) {
+    val index = knownIndexes.find(_.name == name)
+
+    index.foreach{ i =>
+      val refreshed = NamedMusicIndex(name, i.index.refresh)
+      knownIndexes = (refreshed :: knownIndexes.filterNot(_.name == name)).sortBy(_.name)
+    }
+  }
+
   def registerIndex(name: String, index: MusicIndex) {
     knownIndexes = (NamedMusicIndex(name, index) :: knownIndexes).sortBy(_.name)
   }

@@ -4,12 +4,25 @@
 <div class="container">
 
     <div class="row">
-        current indexes:
-        <ul>
-        @for(i <- indexes) {
-            <li><strong>@i.name</strong> @i.index.root</li>
-        }
-        </ul>
+        <h2>current indexes</h2>
+    </div>
+
+    @for(i <- indexes) {
+        <div class="row">
+        <dl class="dl-horizontal">
+            <dt>@i.name</dt>
+            <dd>@i.index.root
+                <form method="POST" action="refreshIndex" class="form-inline">
+                    <input type="hidden" name="name" value="@i.name">
+                    <button type="submit" class="btn">refresh</button>
+                </form>
+            </dd>
+        </dl>
+        </div>
+    }
+
+    <div class="row well">
+        <h3>Add index</h3>
         <form method="POST" action="addIndex" class="form-inline">
           <input type="text" class="input-small" placeholder="name" name="name">
           <input type="text" class="input-large" placeholder="path" name="path">
@@ -20,6 +33,24 @@
           (typically under /Volumes/ on mac, /mnt/ on unix and ?: on windows.)</p>
           <p>Please use the '/' character as the path separator, even on windows (for now).</p>
         </form>
+    </div>
+
+    <div class="row">
+        <form action="diffReport" method="POST" class="form-inline"></form>
+        Find music in
+        <select name="inIndex">
+        @for(i <- indexes) {
+            <option value="@i.name">@i.name</option>
+        }
+        </select>
+        that is not in
+        <select name="notInIndex">
+        @for(i <- indexes) {
+            <option value="@i.name">@i.name</option>
+        }
+        </select>
+
+        <button type="submit" class="btn">go</button>
     </div>
 </div>
 }
