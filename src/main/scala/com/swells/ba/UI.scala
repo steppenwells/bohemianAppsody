@@ -33,14 +33,13 @@ class UI extends ScalatraServlet {
     redirect("/indexes")
   }
 
-  def tree(root: Path, depth: Int = 0) {
-    val padding = "".padTo(depth * 2, " ")
-    if (root.isDirectory) {
-      println(padding + root.simpleName + " (dir)")
-      root.children().foreach( tree(_, depth + 1))
-    } else {
-      println(padding + root.simpleName + " (file)")
-    }
-  }
+  post("/diffReport") {
 
+    val inIndex = Indexes(params("inIndex"))
+    val notInIndex = Indexes(params("notInIndex"))
+
+    val diffIndex = inIndex.index - notInIndex.index
+
+    redirect("/indexes")
+  }
 }

@@ -31,6 +31,8 @@ object Indexes {
     }
   }
 
+  def apply(name: String) = knownIndexes.find(_.name == name).get
+
   def refresh(name: String) {
     val index = knownIndexes.find(_.name == name)
 

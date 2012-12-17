@@ -21,6 +21,22 @@ case class MusicIndex(root: String, artists: List[ArtistIndex]) {
   def refresh = MusicIndex(Path(root, '/'))
 
   def toJson = MusicIndex.toJson(this)
+
+  def -(other: MusicIndex) = {
+    val diffArtists = artists.flatMap { a =>
+      other.getArtist(a.name) match {
+        case Some(otherArtist) => {
+          val diffArtist = a - otherArtist
+          if (diffArtist.albums.size > 0) Some(diffArtist) else None
+        }
+        case None => Some(a)
+      }
+    }
+
+    MusicIndex(root, diffArtists)
+  }
+
+  def getArtist(name: String) = artists.find(_.name == name)
 }
 
 object MusicIndex {
@@ -38,7 +54,25 @@ object MusicIndex {
   def fromJson(j: String) = read[MusicIndex](j)
 }
 
-case class ArtistIndex(root: String, name: String, albums: List[AlbumIndex])
+case class ArtistIndex(root: String, name: String, albums: List[AlbumIndex]) {
+
+  def -(other: ArtistIndex) = {
+    val diffAlbums = albums.flatMap { a =>
+      other.getAlbum(a.name) match {
+        case Some(otherAlbum) => {
+          val diffAlbum = a - otherAlbum
+          if (diffAlbum.songs.size > 0) Some(diffAlbum) else None
+        }
+        case None => Some(a)
+      }
+    }
+
+    ArtistIndex(root, name, diffAlbums)
+  }
+
+  def getAlbum(name: String) = albums.find(_.name == name)
+
+}
 
 object ArtistIndex{
   def apply(path: Path) = {
@@ -50,7 +84,21 @@ object ArtistIndex{
 }
 
 
-case class AlbumIndex(root: String, name: String, songs: List[String])
+case class AlbumIndex(root: String, name: String, songs: List[String]) {
+
+  def -(other: AlbumIndex) = {
+    val diffSongs = songs.flatMap { song =>
+      other.getSong(song) match {
+        case Some(_) => None
+        case None => Some(song)
+      }
+    }
+
+    AlbumIndex(root, name, diffSongs)
+  }
+
+  def getSong(name: String) = songs.find(_ == name)
+}
 
 object AlbumIndex{
   def apply(path: Path) = {
