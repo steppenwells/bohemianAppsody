@@ -40,10 +40,13 @@ object Indexes {
       val refreshed = NamedMusicIndex(name, i.index.refresh)
       knownIndexes = (refreshed :: knownIndexes.filterNot(_.name == name)).sortBy(_.name)
     }
+
+    flush
   }
 
   def registerIndex(name: String, index: MusicIndex) {
     knownIndexes = (NamedMusicIndex(name, index) :: knownIndexes).sortBy(_.name)
+    flush
   }
 }
 

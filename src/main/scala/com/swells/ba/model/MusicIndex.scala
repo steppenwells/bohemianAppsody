@@ -37,6 +37,13 @@ case class MusicIndex(root: String, artists: List[ArtistIndex]) {
   }
 
   def getArtist(name: String) = artists.find(_.name == name)
+
+  def subIndex(path: String) = {
+    path match {
+      case `root` => this
+      case _ => MusicIndex(root, artists.flatMap{ _.subIndex(path)})
+    }
+  }
 }
 
 object MusicIndex {
@@ -72,13 +79,23 @@ case class ArtistIndex(root: String, name: String, albums: List[AlbumIndex]) {
 
   def getAlbum(name: String) = albums.find(_.name == name)
 
+  def subIndex(path: String) = {
+    path match {
+      case `root` => Some(this)
+      case _ => albums.flatMap {_.subIndex(path)} match {
+        case Nil => None
+        case as => Some(ArtistIndex(root, name, as))
+      }
+    }
+  }
+
 }
 
 object ArtistIndex{
   def apply(path: Path) = {
     new ArtistIndex(
       path.path,
-      path.simpleName,
+      path.name,
       path.children(PathMatcher.IsDirectory).toList.map{ p => AlbumIndex(p) }.sortBy(_.name))
   }
 }
@@ -98,17 +115,29 @@ case class AlbumIndex(root: String, name: String, songs: List[String]) {
   }
 
   def getSong(name: String) = songs.find(_ == name)
+
+  def subIndex(path: String) = {
+    path match {
+      case `root` => Some(this)
+      case _ => {
+        songs.filter{s => (root + "/" + s) == path} match {
+          case Nil => None
+          case s => Some(AlbumIndex(root, name, s))
+        }
+      }
+    }
+  }
 }
 
 object AlbumIndex{
   def apply(path: Path) = {
 
     val subFiles = path.children(PathMatcher.IsFile)
-    val fileNames = subFiles.toList.map{ p => p.simpleName}
+    val fileNames = subFiles.toList.map{ p => p.name}
 
     new AlbumIndex(
       path.path,
-      path.simpleName,
+      path.name,
       fileNames.sorted)
   }
 }

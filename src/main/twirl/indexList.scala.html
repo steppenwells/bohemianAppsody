@@ -36,21 +36,22 @@
     </div>
 
     <div class="row">
-        <form action="diffReport" method="POST" class="form-inline"></form>
-        Find music in
-        <select name="inIndex">
-        @for(i <- indexes) {
-            <option value="@i.name">@i.name</option>
-        }
-        </select>
-        that is not in
-        <select name="notInIndex">
-        @for(i <- indexes) {
-            <option value="@i.name">@i.name</option>
-        }
-        </select>
+        <form action="diffReport" method="POST" class="form-inline">
+            Find music in
+            <select name="inIndex">
+            @for(i <- indexes) {
+                <option value="@i.name">@i.name</option>
+            }
+            </select>
+            that is not in
+            <select name="notInIndex">
+            @for(i <- indexes) {
+                <option value="@i.name">@i.name</option>
+            }
+            </select>
 
-        <button type="submit" class="btn">go</button>
+            <button type="submit" class="btn">go</button>
+        </form>
     </div>
 </div>
 }

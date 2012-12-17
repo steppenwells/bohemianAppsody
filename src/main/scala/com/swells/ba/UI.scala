@@ -28,7 +28,6 @@ class UI extends ScalatraServlet {
 
     val index = MusicIndex.apply(Path(rootPath, '/'))
     Indexes.registerIndex(name, index)
-    Indexes.flush
 
     redirect("/indexes")
   }
@@ -37,9 +36,23 @@ class UI extends ScalatraServlet {
 
     val inIndex = Indexes(params("inIndex"))
     val notInIndex = Indexes(params("notInIndex"))
+    val showSongs = params.get("showSongs").map(_.toBoolean).getOrElse(false)
 
     val diffIndex = inIndex.index - notInIndex.index
 
-    redirect("/indexes")
+    html.diffReport.render(inIndex.name, notInIndex.name, diffIndex, Indexes.knownIndexes, showSongs)
+  }
+
+  post("/enqueueCopy") {
+
+    val inIndex = Indexes(params("fromIndex"))
+    val notInIndex = Indexes(params("toIndex"))
+    val copyPath = params("path")
+
+    val diffIndex = inIndex.index - notInIndex.index
+    val copyIndex = diffIndex.subIndex(copyPath)
+
+    copyIndex.toJson
+
   }
 }
