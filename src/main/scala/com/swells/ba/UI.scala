@@ -52,7 +52,9 @@ class UI extends ScalatraServlet {
     val diffIndex = inIndex.index - notInIndex.index
     val copyIndex = diffIndex.subIndex(copyPath)
 
-    copyIndex.toJson
+    val filesToCopy = copyIndex.files
+
+    filesToCopy.mkString("[", ",", "]")
 
   }
 }

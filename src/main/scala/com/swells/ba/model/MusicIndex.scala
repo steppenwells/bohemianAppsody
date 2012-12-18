@@ -44,6 +44,8 @@ case class MusicIndex(root: String, artists: List[ArtistIndex]) {
       case _ => MusicIndex(root, artists.flatMap{ _.subIndex(path)})
     }
   }
+
+  def files = artists.flatMap(_.files)
 }
 
 object MusicIndex {
@@ -89,6 +91,8 @@ case class ArtistIndex(root: String, name: String, albums: List[AlbumIndex]) {
     }
   }
 
+  def files = albums.flatMap(_.files)
+
 }
 
 object ArtistIndex{
@@ -127,6 +131,8 @@ case class AlbumIndex(root: String, name: String, songs: List[Song]) {
       }
     }
   }
+
+  def files = songs.map(_.root)
 }
 
 object AlbumIndex{
