@@ -1,43 +1,96 @@
 
 package com.swells.ba.service
 
-object JobManager {
+import akka.actor.{Props, Actor}
+import akka.event.Logging
+import akka.routing.RoundRobinRouter
+import java.util.Date
 
-  var jobQueue: List[Job] = Nil
-  var runningJobs: Map[String, Job] = Map()
+object JobSystem {
 
-  def enqueue(job: Job) {
-    enqueue(List(job))
-  }
 
-  def enqueue(jobs: List[Job]) {
-    synchronized {
-      jobQueue = jobQueue ::: jobs
-    }
-  }
 
-  def getJob = synchronized {
-    jobQueue match {
-      case j :: js => {
-        jobQueue = js
-        runningJobs = runningJobs + (j.id, j)
-        Some(j)
+}
+
+class JobQueueActor extends Actor {
+
+  lazy val workerPool = context.actorOf(
+    Props[WorkerActor].withRouter(RoundRobinRouter(8).withDispatcher("workerBalancingDispatcher"))
+  )
+
+  val log = Logging(context.system, this)
+  val Retry_Threshold = 4
+
+  var queuedJobCount = 0
+  var successCount = 0
+
+  def receive = {
+    case Enqueue(job) => {
+      if (queuedJobCount == successCount) {
+        resetCounts
       }
-      case Nil => None
+      queuedJobCount = queuedJobCount + 1
+      workerPool ! JobMessage(job)
     }
+
+    case Success => successCount = successCount + 1
+
+    case Failure(job, failCount) => {
+      if (failCount < Retry_Threshold) {
+        log.info("requeuing job %s".format(job.description))
+        workerPool ! JobMessage(job, failCount + 1)
+      }
+    }
+
+    case Status => sender ! JobsStatus(queuedJobCount, successCount)
+
   }
 
-  def finished(id: String) {
-    synchronized{
-      runningJobs = runningJobs - id
-    }
+  def resetCounts {
+    queuedJobCount = 0
+    successCount = 0
   }
+}
 
-  def errored(id: String) {
-    synchronized {
-      val failedJob = runningJobs(id)
-      runningJobs = runningJobs - id
-      jobQueue = jobQueue :: failedJob :: Nil
+class WorkerActor extends Actor {
+
+  val log = Logging(context.system, this)
+  lazy val jobQueue = context.actorFor("jobQueue")
+
+  def receive = {
+    case JobMessage(job, failureCount) => {
+      try{
+        log.debug("starting job " + job.description)
+        val started = new Date().getTime
+
+        job.process
+        jobQueue ! Success
+
+        log.debug("completed job %s in %s ms".format(job.description, new Date().getTime - started))
+      } catch {
+        case e => {
+          log.info("job %s failed".format(job.description), e)
+          jobQueue ! Failure(job, failureCount)
+        }
+      }
     }
   }
 }
+
+// messages
+case class Enqueue(job: Job)
+case class Success()
+case class Failure(job: Job, failureCount: Int)
+case class Status()
+case class JobMessage(job: Job, failureCount: Int = 0)
+
+//responses
+case class JobsStatus(queuedJobs: Int, completedJobs: Int) {
+
+  def percentDone = if (queuedJobs > 0) {
+    (((queuedJobs - completedJobs) / queuedJobs) * 100).round
+  } else 0
+
+  def isRunning = queuedJobs != completedJobs
+}
+

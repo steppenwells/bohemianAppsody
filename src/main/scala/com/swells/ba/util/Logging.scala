@@ -1,7 +1,7 @@
 package com.swells.ba.util
 
-import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 trait Logging {
-  val log = Logger.getLogger(getClass.getName)
+  val log = LoggerFactory.getLogger(getClass.getName)
 }
