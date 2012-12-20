@@ -1,21 +1,22 @@
 
 package com.swells.ba.service
 
-import akka.actor.{Props, Actor}
+import akka.actor.{ActorSystem, Props, Actor}
 import akka.event.Logging
 import akka.routing.RoundRobinRouter
 import java.util.Date
 
 object JobSystem {
 
-
+  val system = ActorSystem("JobSystem")
+  val jobQueueActor = system.actorOf(Props[JobQueueActor], name = "jobQueueActor")
 
 }
 
 class JobQueueActor extends Actor {
 
   lazy val workerPool = context.actorOf(
-    Props[WorkerActor].withRouter(RoundRobinRouter(8).withDispatcher("workerBalancingDispatcher"))
+    Props[WorkerActor].withRouter(RoundRobinRouter(8)).withDispatcher("akka.actor.workerPoolDispatcher")
   )
 
   val log = Logging(context.system, this)
@@ -55,7 +56,6 @@ class JobQueueActor extends Actor {
 class WorkerActor extends Actor {
 
   val log = Logging(context.system, this)
-  lazy val jobQueue = context.actorFor("jobQueue")
 
   def receive = {
     case JobMessage(job, failureCount) => {
@@ -64,13 +64,13 @@ class WorkerActor extends Actor {
         val started = new Date().getTime
 
         job.process
-        jobQueue ! Success
+        JobSystem.jobQueueActor ! Success
 
         log.debug("completed job %s in %s ms".format(job.description, new Date().getTime - started))
       } catch {
         case e => {
           log.info("job %s failed".format(job.description), e)
-          jobQueue ! Failure(job, failureCount)
+          JobSystem.jobQueueActor ! Failure(job, failureCount)
         }
       }
     }

@@ -3,6 +3,7 @@ package com.swells.ba
 import model.{Indexes, MusicIndex}
 import org.scalatra._
 import scalax.file.{Path, FileSystem}
+import service.{Enqueue, JobSystem, CopyJob}
 
 class UI extends ScalatraServlet {
 
@@ -54,7 +55,11 @@ class UI extends ScalatraServlet {
 
     val filesToCopy = copyIndex.files
 
+    val jobs = filesToCopy.map{ file => new CopyJob(file, calculateDestination(notInIndex.index.root, inIndex.index.root, file))}
+    jobs foreach { j => JobSystem.jobQueueActor ! Enqueue(j) }
     filesToCopy.mkString("[", ",", "]")
 
   }
+
+  def calculateDestination(destRoot: String, srcRoot: String, file: String) = file.replaceFirst(srcRoot, destRoot)
 }
