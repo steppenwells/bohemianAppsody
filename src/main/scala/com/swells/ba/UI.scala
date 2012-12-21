@@ -3,7 +3,10 @@ package com.swells.ba
 import model.{Indexes, MusicIndex}
 import org.scalatra._
 import scalax.file.{Path, FileSystem}
-import service.{Enqueue, JobSystem, CopyJob}
+import service.{Status, Enqueue, JobSystem, CopyJob}
+import akka.util.Timeout
+import akka.util.duration._
+import akka.pattern.ask
 
 class UI extends ScalatraServlet {
 
@@ -33,6 +36,10 @@ class UI extends ScalatraServlet {
     redirect("/indexes")
   }
 
+  get("/diffReport") {
+    html.diffReport.render("", "", None, Indexes.knownIndexes, false)
+  }
+
   post("/diffReport") {
 
     val inIndex = Indexes(params("inIndex"))
@@ -41,7 +48,7 @@ class UI extends ScalatraServlet {
 
     val diffIndex = inIndex.index - notInIndex.index
 
-    html.diffReport.render(inIndex.name, notInIndex.name, diffIndex, Indexes.knownIndexes, showSongs)
+    html.diffReport.render(inIndex.name, notInIndex.name, Option(diffIndex), Indexes.knownIndexes, showSongs)
   }
 
   post("/enqueueCopy") {
@@ -59,6 +66,13 @@ class UI extends ScalatraServlet {
     jobs foreach { j => JobSystem.jobQueueActor ! Enqueue(j) }
     filesToCopy.mkString("[", ",", "]")
 
+  }
+
+  get("jobProgress") {
+    implicit val timeout = Timeout(1 seconds)
+
+    val jobStatus = JobSystem.jobQueueActor ? Status
+    jobStatus
   }
 
   def calculateDestination(destRoot: String, srcRoot: String, file: String) = file.replaceFirst(srcRoot, destRoot)

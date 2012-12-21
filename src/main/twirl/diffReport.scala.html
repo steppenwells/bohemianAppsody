@@ -1,6 +1,6 @@
 @(inIndex: String,
 notInIndex: String,
-diffIndex: com.swells.ba.model.MusicIndex,
+diffIndexOpt: Option[com.swells.ba.model.MusicIndex],
 indexes: List[com.swells.ba.model.NamedMusicIndex],
 showSongs: Boolean = false)
 
@@ -27,6 +27,7 @@ showSongs: Boolean = false)
             </form>
         </div>
 
+    @for(diffIndex <- diffIndexOpt) {
     <div class="row">
         <h2>Differences</h2>
         <table class="table table-striped table-condensed">
@@ -68,7 +69,7 @@ showSongs: Boolean = false)
             </tbody>
         </table>
     </div>
-
+    }
 </div>
 
 <script>
