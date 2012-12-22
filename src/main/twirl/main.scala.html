@@ -11,6 +11,26 @@
     <script src="/static/js/bootstrap.min.js" type="text/javascript"></script>
 </head>
 <body>
+
+<div class="navbar navbar-static-top navbar-inverse">
+  <div class="navbar-inner">
+    <a class="brand" href="/diffReport">soNAS</a>
+    <ul class="nav">
+      <li><a href="/indexes">indexes</a></li>
+      <li><a href="/diffReport">differences</a></li>
+      <li class="divider-vertical"></li>
+
+      <li><p class="navbar-text">
+          <span id="completedJobs">0</span> of <span id="totalJobs">0</span> jobs finished
+      </p></li>
+    </ul>
+  </div>
+  <div class="progress">
+    <div id="jobProgress" class="bar" style="width: 0%;"></div>
+  </div>
+</div>
+
 @content
+
 </body>
 </html>
