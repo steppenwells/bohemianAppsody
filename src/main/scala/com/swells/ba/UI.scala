@@ -3,12 +3,19 @@ package com.swells.ba
 import model.{Indexes, MusicIndex}
 import org.scalatra._
 import scalax.file.{Path, FileSystem}
-import service.{Status, Enqueue, JobSystem, CopyJob}
+import service._
 import akka.util.Timeout
 import akka.util.duration._
 import akka.pattern.ask
+import org.json4s._
+import org.json4s.native.Serialization
+import org.json4s.native.Serialization.write
+import util.Logging
+import akka.dispatch.Await
 
-class UI extends ScalatraServlet {
+class UI extends ScalatraServlet with Logging {
+
+  implicit val formats = Serialization.formats(NoTypeHints)
 
   get("/") {
     redirect("/indexes")
@@ -68,11 +75,14 @@ class UI extends ScalatraServlet {
 
   }
 
-  get("jobProgress") {
+  get("/jobProgress") {
     implicit val timeout = Timeout(1 seconds)
 
     val jobStatus = JobSystem.jobQueueActor ? Status
-    jobStatus
+    Await.result(jobStatus, 1 seconds) match {
+      case status: JobsStatus => log.info("Status: " + status); write(status)
+      case o => log.info("o was: "+ o)
+    }
   }
 
   def calculateDestination(destRoot: String, srcRoot: String, file: String) = file.replaceFirst(srcRoot, destRoot)

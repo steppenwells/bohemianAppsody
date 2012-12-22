@@ -7,15 +7,6 @@ import org.json4s.native.Serialization
 import org.json4s.native.Serialization.{read, write}
 
 
-/*
-import org.json4s._
-scala> import org.json4s.native.Serialization
-scala> import org.json4s.native.Serialization.{read, write}
-scala> implicit val formats = Serialization.formats(NoTypeHints)
-scala> val ser = write(Child("Mary", 5, None))
-scala> read[Child](ser)
- */
-
 case class MusicIndex(root: String, artists: List[ArtistIndex]) {
 
   def refresh = MusicIndex(Path(root, '/'))

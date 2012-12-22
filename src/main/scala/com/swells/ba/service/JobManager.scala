@@ -85,12 +85,16 @@ case class Status()
 case class JobMessage(job: Job, failureCount: Int = 0)
 
 //responses
-case class JobsStatus(queuedJobs: Int, completedJobs: Int) {
+case class JobsStatus(queuedJobs: Int, completedJobs: Int, percentDone: Int)
 
-  def percentDone = if (queuedJobs > 0) {
-    (((queuedJobs - completedJobs) / queuedJobs) * 100).round
-  } else 0
+object JobsStatus {
 
-  def isRunning = queuedJobs != completedJobs
+  def apply(queuedJobs: Int, completedJobs: Int) = {
+    val percentDone =  if (queuedJobs > 0) {
+      ((completedJobs.toDouble / queuedJobs.toDouble) * 100).round.toInt
+    } else 0
+
+    new JobsStatus(queuedJobs, completedJobs, percentDone)
+  }
 }
 

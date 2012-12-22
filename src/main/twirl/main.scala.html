@@ -32,5 +32,25 @@
 
 @content
 
+<script>
+
+    function updateProgress(data) {
+        $('#completedJobs').text(data.completedJobs);
+        $('#totalJobs').text(data.queuedJobs);
+        $('#jobProgress').css('width', data.percentDone + '%');
+    }
+
+    function pollProgress() {
+        $.ajax({
+          url: '/jobProgress',
+          success: updateProgress,
+          dataType: 'json'
+        });
+    }
+
+    setInterval(pollProgress, 1000);
+
+</script>
+
 </body>
 </html>
