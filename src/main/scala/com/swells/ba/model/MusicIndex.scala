@@ -36,6 +36,8 @@ case class MusicIndex(root: String, artists: List[ArtistIndex]) {
     }
   }
 
+  def missingArtwork = MusicIndex(root, artists.flatMap(_.missingArtwork))
+
   def files = artists.flatMap(_.files)
 }
 
@@ -82,6 +84,13 @@ case class ArtistIndex(root: String, name: String, albums: List[AlbumIndex]) {
     }
   }
 
+  def missingArtwork = {
+    albums.filterNot(_.hasArtwork) match {
+      case Nil => None
+      case as => Some(ArtistIndex(root, name, as))
+    }
+  }
+
   def files = albums.flatMap(_.files)
 
 }
@@ -123,10 +132,14 @@ case class AlbumIndex(root: String, name: String, songs: List[Song]) {
     }
   }
 
+  lazy val expectedFileNames = AlbumIndex.coverArtFormats.map{ ext => "%s.%s".format(name, ext) }
+
+  def hasArtwork = songs.exists{ song => expectedFileNames.contains(song.name) }
+
   def files = songs.map(_.root)
 }
 
-object AlbumIndex{
+object AlbumIndex {
   def apply(path: Path) = {
 
     val subFiles = path.children(PathMatcher.IsFile)
@@ -137,6 +150,8 @@ object AlbumIndex{
       path.name,
       fileNames.sortBy(_.name))
   }
+
+  val coverArtFormats = List("jpg", "gif", "png", "bmp", "jpeg")
 }
 
 case class Song(root: String, name: String)
