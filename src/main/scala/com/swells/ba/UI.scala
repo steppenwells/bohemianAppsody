@@ -80,8 +80,8 @@ class UI extends ScalatraServlet with Logging {
 
     val jobStatus = JobSystem.jobQueueActor ? Status
     Await.result(jobStatus, 1 seconds) match {
-      case status: JobsStatus => log.info("Status: " + status); write(status)
-      case o => log.info("o was: "+ o)
+      case status: JobsStatus => write(status)
+      case _ =>
     }
   }
 

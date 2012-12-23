@@ -30,6 +30,7 @@ showSongs: Boolean = false)
     @for(diffIndex <- diffIndexOpt) {
     <div class="row">
         <h2>Differences</h2>
+        <button class="btn btn-info btn-mini copy-btn" id="@diffIndex.root">Copy the lot</button>
         <table class="table table-striped table-condensed">
             <thead>
                 <tr>
