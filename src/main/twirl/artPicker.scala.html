@@ -1,0 +1,54 @@
+@(inIndex: String,
+artist: String,
+album: String,
+albumRoot: String,
+imageUrlOpt: Option[String],
+indexes: List[com.swells.ba.model.NamedMusicIndex])
+
+@main("soNAS - image selector") {
+<div class="container">
+
+    <div class="row well">
+            <form action="/imageFind" method="POST" class="form-inline">
+                Find images for
+                <select name="inIndex">
+                @for(i <- indexes) {
+                    <option value="@i.name" @if(i.name == inIndex){selected="true"} >@i.name</option>
+                }
+                </select>
+                <button type="submit" class="btn">go</button>
+            </form>
+        </div>
+
+    @for(imageUrl <- imageUrlOpt) {
+    <div class="row">
+        <div class="span6">
+        <h2>@artist</h2><p>@album</p>
+        <img src="@imageUrl">
+        </div>
+
+        <div class="span6">
+            <form action="/selectedImage" method="POST" >
+                <p>If you are seeing an image and it looks correct download it, otherwise go looking for another</p>
+                <input type="hidden" name="inIndex" value="@inIndex">
+                <input type="hidden" name="albumRoot" value="@albumRoot">
+                <input type="hidden" name="albumName" value="@album">
+                <input type="hidden" name="imageUrl" value="@imageUrl">
+
+                <button type="submit" class="btn btn-success">Download</button>
+            </form>
+            <form action="/imageFind" method="POST" >
+                <input type="hidden" name="inIndex" value="@inIndex">
+                <button type="submit" class="btn btn-warning">Try another</button>
+            </form>
+        </div>
+
+
+    </div>
+    }
+</div>
+
+<script>
+
+</script>
+}

@@ -38,6 +38,7 @@ case class MusicIndex(root: String, artists: List[ArtistIndex]) {
 
   def missingArtwork = MusicIndex(root, artists.flatMap(_.missingArtwork))
 
+  def albums = artists.flatMap(_.albums)
   def files = artists.flatMap(_.files)
 }
 

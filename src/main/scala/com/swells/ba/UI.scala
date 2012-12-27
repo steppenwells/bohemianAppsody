@@ -1,6 +1,6 @@
 package com.swells.ba
 
-import model.{Indexes, MusicIndex}
+import model.{NamedMusicIndex, Indexes, MusicIndex}
 import org.scalatra._
 import scalax.file.{Path, FileSystem}
 import service._
@@ -12,6 +12,7 @@ import org.json4s.native.Serialization
 import org.json4s.native.Serialization.write
 import util.Logging
 import akka.dispatch.Await
+import scala.util.Random._
 
 class UI extends ScalatraServlet with Logging {
 
@@ -83,6 +84,50 @@ class UI extends ScalatraServlet with Logging {
       case status: JobsStatus => write(status)
       case _ =>
     }
+  }
+
+  get("/imageFind") {
+    html.artPicker.render("", "", "", "", None, Indexes.knownIndexes)
+  }
+
+  post("/imageFind") {
+    val inIndex = Indexes(params("inIndex"))
+    displaySingleImagePicker(inIndex)
+
+  }
+
+  post("/selectedImage") {
+    val inIndex = Indexes(params("inIndex"))
+    val albumRoot = params("albumRoot")
+    val albumName = params("albumName")
+    val imageUrl = params("imageUrl")
+
+    val imageExtension = imageUrl.substring(imageUrl.lastIndexOf(".") + 1)
+    val calculatedImagePath = "%s/%s.%s".format(albumRoot, albumName, imageExtension)
+    val job = new DownloadFileJob(imageUrl, calculatedImagePath)
+    //val job = new DownloadFileJob(imageUrl, "test." + imageExtension)
+
+    JobSystem.jobQueueActor ! Enqueue(job)
+
+    displaySingleImagePicker(inIndex)
+  }
+
+
+  def displaySingleImagePicker(inIndex: NamedMusicIndex) = {
+    val missingImages = inIndex.index.missingArtwork
+    val artist = shuffle(missingImages.artists).head
+
+    val album = shuffle(artist.albums).head
+
+    val candidateArtwork = try {
+     LastFmApi.getAlbumArtwork(artist.name, album.name)
+    } catch {
+      case e => {
+        log.info("failed to get art for %s, %s".format(artist.name, album.name))
+        None
+      }
+    }
+    html.artPicker.render(inIndex.name, artist.name, album.name, album.root,  candidateArtwork, Indexes.knownIndexes)
   }
 
   def calculateDestination(destRoot: String, srcRoot: String, file: String) = file.replaceFirst(srcRoot, destRoot)
