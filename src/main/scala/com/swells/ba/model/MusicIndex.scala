@@ -133,7 +133,7 @@ case class AlbumIndex(root: String, name: String, songs: List[Song]) {
     }
   }
 
-  lazy val expectedFileNames = AlbumIndex.coverArtFormats.map{ ext => "%s.%s".format(name, ext) }
+  lazy val expectedFileNames = AlbumIndex.coverArtFormats.map{ ext => "folder.%s".format(ext) }
 
   def hasArtwork = songs.exists{ song => expectedFileNames.contains(song.name) }
 
@@ -152,7 +152,7 @@ object AlbumIndex {
       fileNames.sortBy(_.name))
   }
 
-  val coverArtFormats = List("jpg", "gif", "png", "bmp", "jpeg")
+  val coverArtFormats = List("jpg", "gif")
 }
 
 case class Song(root: String, name: String)

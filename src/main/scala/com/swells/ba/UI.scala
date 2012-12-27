@@ -103,9 +103,8 @@ class UI extends ScalatraServlet with Logging {
     val imageUrl = params("imageUrl")
 
     val imageExtension = imageUrl.substring(imageUrl.lastIndexOf(".") + 1)
-    val calculatedImagePath = "%s/%s.%s".format(albumRoot, albumName, imageExtension)
+    val calculatedImagePath = "%s/folder.%s".format(albumRoot, imageExtension)
     val job = new DownloadFileJob(imageUrl, calculatedImagePath)
-    //val job = new DownloadFileJob(imageUrl, "test." + imageExtension)
 
     JobSystem.jobQueueActor ! Enqueue(job)
 

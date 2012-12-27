@@ -22,10 +22,7 @@ class CopyJob(srcPath: String, destPath: String) extends Job {
   def description = "copy %s -> %s".format(srcPath, destPath)
 
   def process {
-    val src = Path(srcPath, '/')
-    val dest = Path(destPath, '/')
-
-    src.copyTo(dest)
+    FileUtils.copyFile(new File(srcPath), new File(destPath))
   }
 }
 
@@ -34,11 +31,6 @@ class DownloadFileJob(srcUrl: String, destPath: String) extends Job {
   def description = "download %s -> %s".format(srcUrl, destPath)
 
   def process {
-//    val src = new java.net.URL("http://www.scala-lang.org").asInput
-//    val dest = Path(destPath, '/')
-//
-//    src.copyDataTo(dest)
-
     FileUtils.copyURLToFile(new URL(srcUrl), new File(destPath), 5000, 5000)
   }
 
