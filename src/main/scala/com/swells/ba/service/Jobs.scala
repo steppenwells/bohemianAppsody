@@ -8,6 +8,9 @@ import scalax.io.JavaConverters._
 import org.apache.commons.io.FileUtils
 import java.io.File
 import java.net.URL
+import javax.imageio.ImageIO
+import java.awt.image.BufferedImage
+import java.awt.Color
 
 trait Job extends Logging {
 
@@ -26,12 +29,28 @@ class CopyJob(srcPath: String, destPath: String) extends Job {
   }
 }
 
-class DownloadFileJob(srcUrl: String, destPath: String) extends Job {
+class DownloadFileJob(srcUrl: String, imageExtension: String, destPath: String) extends Job {
 
   def description = "download %s -> %s".format(srcUrl, destPath)
 
   def process {
-    FileUtils.copyURLToFile(new URL(srcUrl), new File(destPath), 5000, 5000)
+    imageExtension match {
+      case "jpg" => FileUtils.copyURLToFile(new URL(srcUrl), new File(destPath+".jpg"), 5000, 5000)
+      case "jpeg" => FileUtils.copyURLToFile(new URL(srcUrl), new File(destPath+".jpg"), 5000, 5000)
+      case "gif" => FileUtils.copyURLToFile(new URL(srcUrl), new File(destPath+".gif"), 5000, 5000)
+      case ext => {
+        log.debug("converting " + ext + " to jpg")
+        val origImg = ImageIO.read(new URL(srcUrl))
+//        val rgbImg = new BufferedImage(origImg.getWidth(), origImg.getHeight(), BufferedImage.TYPE_INT_RGB)
+//        rgbImg.setData(origImg.getData())
+
+        val rgbImg = new BufferedImage(origImg.getWidth(), origImg.getHeight(), BufferedImage.TYPE_INT_RGB);
+        rgbImg.createGraphics().drawImage(origImg, 0, 0, Color.BLACK, null);
+
+        ImageIO.write(rgbImg, "jpg", new File(destPath+".jpg"))
+        log.debug("wrote converted file, width was " + rgbImg.getWidth)
+      }
+    }
   }
 
 }
