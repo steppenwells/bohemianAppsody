@@ -1,4 +1,4 @@
-package com.swells.ba.util
+package com.swells.sonas.util
 
 import org.slf4j.LoggerFactory
 

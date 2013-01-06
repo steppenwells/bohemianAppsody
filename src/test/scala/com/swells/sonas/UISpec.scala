@@ -1,4 +1,4 @@
-package com.swells.ba
+package com.swells.sonas
 
 import org.scalatra.test.specs2._
 

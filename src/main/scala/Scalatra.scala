@@ -1,4 +1,4 @@
-import com.swells.ba._
+import com.swells.sonas._
 import model.Indexes
 import org.scalatra._
 import javax.servlet.ServletContext

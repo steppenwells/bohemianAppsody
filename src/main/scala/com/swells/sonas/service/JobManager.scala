@@ -1,5 +1,5 @@
 
-package com.swells.ba.service
+package com.swells.sonas.service
 
 import akka.actor.{ActorSystem, Props, Actor}
 import akka.event.Logging

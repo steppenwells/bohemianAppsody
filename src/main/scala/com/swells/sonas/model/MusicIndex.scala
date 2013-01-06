@@ -1,5 +1,5 @@
 
-package com.swells.ba.model
+package com.swells.sonas.model
 
 import scalax.file.{PathMatcher, Path}
 import org.json4s._

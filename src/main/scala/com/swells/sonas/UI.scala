@@ -1,4 +1,4 @@
-package com.swells.ba
+package com.swells.sonas
 
 import model.{NamedMusicIndex, Indexes, MusicIndex}
 import org.scalatra._

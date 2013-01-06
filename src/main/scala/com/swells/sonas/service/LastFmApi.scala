@@ -1,11 +1,11 @@
-package com.swells.ba.service
+package com.swells.sonas.service
 
 import java.net.{URLEncoder, URL}
 import io.Source
 import org.json4s._
 import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization
-import com.swells.ba.util.Logging
+import com.swells.sonas.util.Logging
 
 object LastFmApi extends Logging {
 

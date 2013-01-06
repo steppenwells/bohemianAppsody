@@ -1,6 +1,6 @@
-package com.swells.ba.service
+package com.swells.sonas.service
 
-import com.swells.ba.util.Logging
+import com.swells.sonas.util.Logging
 import java.util.Date
 import util.Random
 import scalax.file.Path
