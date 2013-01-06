@@ -38,7 +38,7 @@ class UI extends ScalatraServlet with Logging {
     val name = params("name")
     val rootPath = params("path")
 
-    val index = MusicIndex.apply(Path(rootPath, '/'))
+    val index = MusicIndex.apply(Path(rootPath.replace("\\", "/"), '/'))
     Indexes.registerIndex(name, index)
 
     redirect("/indexes")
@@ -140,5 +140,5 @@ class UI extends ScalatraServlet with Logging {
     html.artPicker.render(inIndex.name, artist.name, album.name, album.root,  candidateArtwork, Indexes.knownIndexes)
   }
 
-  def calculateDestination(destRoot: String, srcRoot: String, file: String) = file.replaceFirst(srcRoot, destRoot)
+  def calculateDestination(destRoot: String, srcRoot: String, file: String) = file.replace(srcRoot, destRoot)
 }

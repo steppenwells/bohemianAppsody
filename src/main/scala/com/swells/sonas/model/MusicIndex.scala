@@ -12,7 +12,7 @@ case class MusicIndex(root: String, artists: List[ArtistIndex]) {
 
   lazy val Allow_Fuzzy_Threshold = 30
 
-  def refresh = MusicIndex(Path(root, '/'))
+  def refresh = MusicIndex(Path(root.replace("\\", "/"), '/'))
 
   def toJson = MusicIndex.toJson(this)
 
@@ -57,7 +57,7 @@ object MusicIndex {
   def apply(path: Path) = {
     new MusicIndex(
       path.path,
-      path.children(PathMatcher.IsDirectory).toList.map{ArtistIndex(_)}.sortBy(_.name))
+      path.children(PathMatcher.IsDirectory).toList.filterNot(_.name.startsWith(".")).map{ArtistIndex(_)}.sortBy(_.name))
   }
 
   def toJson(index: MusicIndex) = write(index)
@@ -115,7 +115,7 @@ object ArtistIndex{
     new ArtistIndex(
       path.path,
       path.name,
-      path.children(PathMatcher.IsDirectory).toList.map{ p => AlbumIndex(p) }.sortBy(_.name))
+      path.children(PathMatcher.IsDirectory).toList.filterNot(_.name.startsWith(".")).map{ p => AlbumIndex(p) }.sortBy(_.name))
   }
 }
 
@@ -169,7 +169,7 @@ object AlbumIndex {
   def apply(path: Path) = {
 
     val subFiles = path.children(PathMatcher.IsFile)
-    val fileNames = subFiles.toList.map{ p => Song(p.path, p.name)}
+    val fileNames = subFiles.toList.filterNot(_.name.startsWith(".")).map{ p => Song(p.path, p.name)}
 
     new AlbumIndex(
       path.path,
