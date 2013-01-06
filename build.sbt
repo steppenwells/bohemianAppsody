@@ -1,3 +1,5 @@
+import AssemblyKeys._
+
 organization := "com.swells"
 
 name := "soNAS"
@@ -23,7 +25,21 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" % "akka-actor" % "2.0.4",
   "com.typesafe.akka" % "akka-slf4j" % "2.0.4",
   "org.eclipse.jetty" % "jetty-webapp" % "8.1.7.v20120910" % "container",
+  "org.eclipse.jetty" % "jetty-webapp" % "8.1.7.v20120910",
   "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "container;provided;test" artifacts (Artifact("javax.servlet", "jar", "jar"))
 )
 
 seq(Twirl.settings: _*)
+
+assemblySettings
+
+jarName in assembly := "sonas.jar"
+
+mainClass in assembly := Some("com.swells.sonas.Launcher")
+
+mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) =>
+  {
+    case "about.html" => MergeStrategy.discard
+    case x => old(x)
+  }
+}

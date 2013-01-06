@@ -6,14 +6,17 @@ import org.json4s._
 import org.json4s.native.Serialization
 import org.json4s.native.Serialization.{read, write}
 
+case class DiffSettings(ignoreArtwork: Boolean, fuzzyMatch: Boolean)
 
 case class MusicIndex(root: String, artists: List[ArtistIndex]) {
+
+  lazy val Allow_Fuzzy_Threshold = 30
 
   def refresh = MusicIndex(Path(root, '/'))
 
   def toJson = MusicIndex.toJson(this)
 
-  def -(other: MusicIndex) = {
+  def -(other: MusicIndex)(implicit diffSettings: DiffSettings) = {
     val diffArtists = artists.flatMap { a =>
       other.getArtist(a.name) match {
         case Some(otherArtist) => {
@@ -27,7 +30,12 @@ case class MusicIndex(root: String, artists: List[ArtistIndex]) {
     MusicIndex(root, diffArtists)
   }
 
-  def getArtist(name: String) = artists.find(_.name == name)
+  def getArtist(name: String)(implicit diffSettings: DiffSettings) = {
+    if (diffSettings.fuzzyMatch && name.length > Allow_Fuzzy_Threshold)
+      artists.find(a => a.name.startsWith(name) || name.startsWith(a.name))
+    else
+      artists.find(_.name == name)
+  }
 
   def subIndex(path: String) = {
     path match {
@@ -58,8 +66,9 @@ object MusicIndex {
 }
 
 case class ArtistIndex(root: String, name: String, albums: List[AlbumIndex]) {
+  lazy val Allow_Fuzzy_Threshold = 30
 
-  def -(other: ArtistIndex) = {
+  def -(other: ArtistIndex)(implicit diffSettings: DiffSettings) = {
     val diffAlbums = albums.flatMap { a =>
       other.getAlbum(a.name) match {
         case Some(otherAlbum) => {
@@ -73,7 +82,12 @@ case class ArtistIndex(root: String, name: String, albums: List[AlbumIndex]) {
     ArtistIndex(root, name, diffAlbums)
   }
 
-  def getAlbum(name: String) = albums.find(_.name == name)
+  def getAlbum(name: String)(implicit diffSettings: DiffSettings) = {
+    if (diffSettings.fuzzyMatch && name.length > Allow_Fuzzy_Threshold)
+      albums.find(a => a.name.startsWith(name) || name.startsWith(a.name))
+    else
+      albums.find(_.name == name)
+  }
 
   def subIndex(path: String) = {
     path match {
@@ -108,8 +122,11 @@ object ArtistIndex{
 
 case class AlbumIndex(root: String, name: String, songs: List[Song]) {
 
-  def -(other: AlbumIndex) = {
-    val diffSongs = songs.flatMap { song =>
+  lazy val Allow_Fuzzy_Threshold = 30
+
+  def -(other: AlbumIndex)(implicit diffSettings: DiffSettings) = {
+    val validSongs = if (diffSettings.ignoreArtwork) songs.filterNot(_.name.startsWith("folder.")) else songs
+    val diffSongs = validSongs.flatMap { song =>
       other.getSong(song.name) match {
         case Some(_) => None
         case None => Some(song)
@@ -119,7 +136,15 @@ case class AlbumIndex(root: String, name: String, songs: List[Song]) {
     AlbumIndex(root, name, diffSongs)
   }
 
-  def getSong(name: String) = songs.find(_.name == name)
+  def getSong(name: String)(implicit diffSettings: DiffSettings) = {
+    def title(s: String) = s.substring(0, s.lastIndexOf('.'))
+
+    if (diffSettings.fuzzyMatch && name.length > Allow_Fuzzy_Threshold) {
+      val nameWithoutExt = title(name)
+      songs.find(a => title(a.name).startsWith(nameWithoutExt) || nameWithoutExt.startsWith(title(a.name)))
+    } else
+      songs.find(_.name == name)
+  }
 
   def subIndex(path: String) = {
     path match {

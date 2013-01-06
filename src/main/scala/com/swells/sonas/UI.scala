@@ -1,6 +1,6 @@
 package com.swells.sonas
 
-import model.{NamedMusicIndex, Indexes, MusicIndex}
+import model.{DiffSettings, NamedMusicIndex, Indexes, MusicIndex}
 import org.scalatra._
 import scalax.file.{Path, FileSystem}
 import service._
@@ -45,7 +45,7 @@ class UI extends ScalatraServlet with Logging {
   }
 
   get("/diffReport") {
-    html.diffReport.render("", "", None, Indexes.knownIndexes, false)
+    html.diffReport.render("", "", None, Indexes.knownIndexes, false, DiffSettings(true, true))
   }
 
   post("/diffReport") {
@@ -53,10 +53,16 @@ class UI extends ScalatraServlet with Logging {
     val inIndex = Indexes(params("inIndex"))
     val notInIndex = Indexes(params("notInIndex"))
     val showSongs = params.get("showSongs").map(_.toBoolean).getOrElse(false)
+    implicit val diffSettings = DiffSettings(
+      ignoreArtwork = params.get("ignoreArtwork").map(_.toBoolean).getOrElse(true),
+      fuzzyMatch = params.get("fuzzyMatch").map(_.toBoolean).getOrElse(true)
+    )
+
+    println(diffSettings)
 
     val diffIndex = inIndex.index - notInIndex.index
 
-    html.diffReport.render(inIndex.name, notInIndex.name, Option(diffIndex), Indexes.knownIndexes, showSongs)
+    html.diffReport.render(inIndex.name, notInIndex.name, Option(diffIndex), Indexes.knownIndexes, showSongs, diffSettings)
   }
 
   post("/enqueueCopy") {
@@ -64,6 +70,10 @@ class UI extends ScalatraServlet with Logging {
     val inIndex = Indexes(params("fromIndex"))
     val notInIndex = Indexes(params("toIndex"))
     val copyPath = params("path")
+    implicit val diffSettings = DiffSettings(
+      ignoreArtwork = params.get("ignoreArtwork").map(_.toBoolean).getOrElse(true),
+      fuzzyMatch = params.get("fuzzyMatch").map(_.toBoolean).getOrElse(true)
+    )
 
     val diffIndex = inIndex.index - notInIndex.index
     val copyIndex = diffIndex.subIndex(copyPath)
