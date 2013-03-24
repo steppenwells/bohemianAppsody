@@ -22,8 +22,9 @@ libraryDependencies ++= Seq(
   "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.1-seq",
   "commons-io" % "commons-io" % "2.4",
   "ch.qos.logback" % "logback-classic" % "1.0.6" % "runtime",
-  "com.typesafe.akka" % "akka-actor" % "2.0.4",
-  "com.typesafe.akka" % "akka-slf4j" % "2.0.4",
+  "com.typesafe.akka" % "akka-actor" % "2.0.5",
+  "com.typesafe.akka" % "akka-agent" % "2.0.5",
+  "com.typesafe.akka" % "akka-slf4j" % "2.0.5",
   "org.eclipse.jetty" % "jetty-webapp" % "8.1.7.v20120910" % "container",
   "org.eclipse.jetty" % "jetty-webapp" % "8.1.7.v20120910",
   "org.eclipse.jetty.orbit" % "javax.servlet" % "3.0.0.v201112011016" % "container;provided;test" artifacts (Artifact("javax.servlet", "jar", "jar"))

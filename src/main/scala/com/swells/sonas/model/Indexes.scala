@@ -2,8 +2,12 @@ package com.swells.sonas.model
 
 import scalax.file.{PathMatcher, Path}
 import scalax.io._
+import akka.actor.ActorSystem
+import akka.agent.Agent
 
 object Indexes {
+
+  implicit val system = ActorSystem("sonas")
 
   var knownIndexes: List[NamedMusicIndex] = Nil
 
@@ -15,7 +19,7 @@ object Indexes {
       println("loading " + f.name)
 
       val json = f.inputStream().string
-      NamedMusicIndex(f.simpleName, MusicIndex.fromJson(json))
+      NamedMusicIndex(f.simpleName, Agent(MusicIndex.fromJson(json)))
     }
 
     knownIndexes = indexes
@@ -37,7 +41,7 @@ object Indexes {
     val index = knownIndexes.find(_.name == name)
 
     index.foreach{ i =>
-      val refreshed = NamedMusicIndex(name, i.index.refresh)
+      val refreshed = NamedMusicIndex(name, Agent(i.index.refresh))
       knownIndexes = (refreshed :: knownIndexes.filterNot(_.name == name)).sortBy(_.name)
     }
 
@@ -45,9 +49,11 @@ object Indexes {
   }
 
   def registerIndex(name: String, index: MusicIndex) {
-    knownIndexes = (NamedMusicIndex(name, index) :: knownIndexes).sortBy(_.name)
+    knownIndexes = (NamedMusicIndex(name, Agent(index)) :: knownIndexes).sortBy(_.name)
     flush
   }
 }
 
-case class NamedMusicIndex(name: String, index: MusicIndex)
+case class NamedMusicIndex(name: String, indexAgent: Agent[MusicIndex]) {
+  def index = indexAgent.get
+}
