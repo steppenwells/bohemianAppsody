@@ -4,6 +4,7 @@ import scalax.file.{PathMatcher, Path}
 import scalax.io._
 import akka.actor.ActorSystem
 import akka.agent.Agent
+import akka.util.duration._
 
 object Indexes {
 
@@ -23,6 +24,8 @@ object Indexes {
     }
 
     knownIndexes = indexes
+
+    system.scheduler.schedule(1 minute, 1 minute) { flush }
   }
 
   def flush {
