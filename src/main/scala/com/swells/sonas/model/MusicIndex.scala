@@ -186,6 +186,8 @@ case class AlbumIndex(root: String, name: String, songs: List[Song]) {
     if (diffSettings.fuzzyMatch && name.length > Allow_Fuzzy_Threshold) {
       val nameWithoutExt = title(name)
       songs.find(a => title(a.name).startsWith(nameWithoutExt) || nameWithoutExt.startsWith(title(a.name)))
+    } else if (diffSettings.fuzzyMatch) {
+      songs.find {a => title(a.name) == title(name)}
     } else
       songs.find(_.name == name)
   }
