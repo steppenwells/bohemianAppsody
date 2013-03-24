@@ -30,7 +30,7 @@ object Indexes {
 
   def flush {
     knownIndexes.foreach { ni =>
-      val json = ni.index.toJson
+      val json = ni.indexInternal.toJson
       val file = Path("cache/index", '/') / (ni.name + ".json")
       file.write(json)
 
@@ -45,7 +45,7 @@ object Indexes {
 
     index.foreach{ i =>
       i.indexAgent.close // shut down old agent, this will be replaced.
-      val refreshed = NamedMusicIndex(name, Agent(i.index.refresh))
+      val refreshed = NamedMusicIndex(name, Agent(i.indexInternal.refresh))
       knownIndexes = (refreshed :: knownIndexes.filterNot(_.name == name)).sortBy(_.name)
     }
 
@@ -59,7 +59,12 @@ object Indexes {
 }
 
 case class NamedMusicIndex(name: String, indexAgent: Agent[MusicIndex]) {
-  def fileAdded(addedPath: String) { indexAgent send (_.fileAdded(addedPath))}
+  def fileAdded(addedPath: String) { indexAgent send (_.fileAdded(addedPath)) }
+  def exclude(path: String) { indexAgent send (_.exclude(path)) }
+  def include(path: String) { indexAgent send (_.include(path)) }
 
-  def index = indexAgent.get
+  def indexInternal = indexAgent.get
+
+  def index = indexInternal.included
+  def excludedIndex = indexInternal.excluded
 }

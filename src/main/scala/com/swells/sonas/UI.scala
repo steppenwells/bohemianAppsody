@@ -65,6 +65,18 @@ class UI extends ScalatraServlet with Logging {
     html.diffReport.render(inIndex.name, notInIndex.name, Option(diffIndex), Indexes.knownIndexes, showSongs, diffSettings)
   }
 
+  get("/exclusions") {
+    html.excludedReport.render("", None, Indexes.knownIndexes, false)
+  }
+
+  post("/exclusions") {
+    val inIndex = Indexes(params("inIndex"))
+    val excludedItems = inIndex.excludedIndex
+    val showSongs = params.get("showSongs").map(_.toBoolean).getOrElse(false)
+
+    html.excludedReport.render(inIndex.name, Option(excludedItems), Indexes.knownIndexes, showSongs)
+  }
+
   post("/enqueueCopy") {
 
     val inIndex = Indexes(params("fromIndex"))
@@ -86,6 +98,20 @@ class UI extends ScalatraServlet with Logging {
     jobs foreach { j => JobSystem.jobQueueActor ! Enqueue(j) }
     filesToCopy.mkString("[", ",", "]")
 
+  }
+
+  post("/excludePath") {
+    val inIndex = Indexes(params("inIndex"))
+    val excludePath = params("path")
+
+    inIndex.exclude(excludePath)
+  }
+
+  post("/includePath") {
+    val inIndex = Indexes(params("inIndex"))
+    val excludePath = params("path")
+
+    inIndex.include(excludePath)
   }
 
   get("/jobProgress") {

@@ -22,6 +22,9 @@ case class MusicIndex(root: String, artists: List[ArtistIndex]) {
 
   def toJson = MusicIndex.toJson(this)
 
+  def included = copy(artists = artists.flatMap{_.included})
+  def excluded = copy(artists = artists.flatMap{_.excluded})
+
   def -(other: MusicIndex)(implicit diffSettings: DiffSettings) = {
     val diffArtists = artists.flatMap { a =>
       other.getArtist(a.name) match {
@@ -61,6 +64,14 @@ case class MusicIndex(root: String, artists: List[ArtistIndex]) {
     }
   }
 
+  def exclude(path: String) = {
+    copy(artists = artists.map(_.exclude(path)))
+  }
+
+  def include(path : String) = {
+    copy(artists = artists.map(_.include(path)))
+  }
+
   def subIndex(path: String) = {
     path match {
       case `root` => this
@@ -89,10 +100,18 @@ object MusicIndex {
   def fromJson(j: String) = read[MusicIndex](j)
 }
 
-case class ArtistIndex(root: String, name: String, albums: List[AlbumIndex]) {
+case class ArtistIndex(root: String, name: String, albums: List[AlbumIndex], isExcluded: Boolean = false) {
   lazy val Allow_Fuzzy_Threshold = 30
 
   def rootPath = Path(root.replace("\\", "/"), '/')
+
+  def included = if(isExcluded) None else Some(copy(albums = albums.flatMap(_.included)))
+  def excluded = if(isExcluded) Some(this) else {
+    albums.flatMap(_.excluded) match {
+      case Nil => None
+      case as => Some(copy(albums = as))
+    }
+  }
 
   def -(other: ArtistIndex)(implicit diffSettings: DiffSettings) = {
     val diffAlbums = albums.flatMap { a =>
@@ -113,6 +132,20 @@ case class ArtistIndex(root: String, name: String, albums: List[AlbumIndex]) {
       albums.find(a => a.name.startsWith(name) || name.startsWith(a.name))
     else
       albums.find(_.name == name)
+  }
+
+  def exclude(path: String) = {
+    if (path == root)
+      copy(isExcluded = true)
+    else
+      copy(albums = albums.map(_.exclude(path)))
+  }
+
+  def include(path : String) = {
+    if (path == root)
+      copy(isExcluded = false)
+    else
+      copy(albums = albums.map(_.include(path)))
   }
 
   def fileAdded(path: Path) = {
@@ -162,11 +195,19 @@ object ArtistIndex{
 }
 
 
-case class AlbumIndex(root: String, name: String, songs: List[Song]) {
+case class AlbumIndex(root: String, name: String, songs: List[Song], isExcluded: Boolean = false) {
 
   lazy val Allow_Fuzzy_Threshold = 30
 
   def rootPath = Path(root.replace("\\", "/"), '/')
+
+  def included = if(isExcluded) None else Some(copy(songs = songs.filterNot(_.isExcluded)))
+  def excluded = if(isExcluded) Some(this) else {
+    songs.filter(_.isExcluded) match {
+      case Nil => None
+      case es => Some(copy(songs = es))
+    }
+  }
 
   def -(other: AlbumIndex)(implicit diffSettings: DiffSettings) = {
     val validSongs = if (diffSettings.ignoreArtwork) songs.filterNot(_.name.startsWith("folder.")) else songs
@@ -190,6 +231,20 @@ case class AlbumIndex(root: String, name: String, songs: List[Song]) {
       songs.find {a => title(a.name) == title(name)}
     } else
       songs.find(_.name == name)
+  }
+
+  def exclude(path: String) = {
+    if (path == root)
+      copy(isExcluded = true)
+    else
+      copy(songs = songs.map(_.exclude(path)))
+  }
+
+  def include(path : String) = {
+    if (path == root)
+      copy(isExcluded = false)
+    else
+      copy(songs = songs.map(_.include(path)))
   }
 
   def fileAdded(path: Path) = {
@@ -244,4 +299,18 @@ object AlbumIndex {
   val coverArtFormats = List("jpg", "gif")
 }
 
-case class Song(root: String, name: String)
+case class Song(root: String, name: String, isExcluded: Boolean = false) {
+  def exclude(path: String) = {
+    if (path == root)
+      copy(isExcluded = true)
+    else
+      this
+  }
+
+  def include(path : String) = {
+    if (path == root)
+      copy(isExcluded = false)
+    else
+      this
+  }
+}

@@ -1,0 +1,90 @@
+@(inIndex: String,
+exclusionIndexOpt: Option[com.swells.sonas.model.MusicIndex],
+indexes: List[com.swells.sonas.model.NamedMusicIndex],
+showSongs: Boolean = false
+)
+
+@main("Bohemian Appsody - exclusions report") {
+<div class="container">
+
+    <div class="row well">
+            <form action="exclusions" method="POST" class="form-inline">
+                Show exclusions in
+                <select name="inIndex">
+                @for(i <- indexes) {
+                    <option value="@i.name" @if(i.name == inIndex){selected="true"} >@i.name</option>
+                }
+                </select>
+
+                show songs <input type="checkbox" name="showSongs" value="true" @if(showSongs){checked="true"}>
+                <button type="submit" class="btn">go</button>
+            </form>
+        </div>
+
+    @for(exclusionIndex <- exclusionIndexOpt) {
+    <div class="row">
+        <h2>Exclusions</h2>
+        <table class="table table-striped table-condensed">
+            <thead>
+                <tr>
+                    <th>Artist</th>
+                    <th>Album</th>
+                    <th>Song</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @for(artist <- exclusionIndex.artists) {
+                <tr>
+                    <td>@artist.name</td>
+                    <td></td>
+                    <td></td>
+                    <td>@if(artist.isExcluded) {
+                        <button class="btn btn-info btn-mini include-btn" data-path="@artist.root">Include</button>
+                    }</td>
+                </tr>
+                @for(album <- artist.albums) {
+                    <tr>
+                        <td></td>
+                        <td>@album.name</td>
+                        <td>@album.songs.size</td>
+                        <td>@if(album.isExcluded) {
+                            <button class="btn btn-info btn-mini include-btn" data-path="@album.root">Include</button>
+                        }</td>
+                    </tr>
+                        @if(showSongs) {
+                        @for(song <- album.songs) {
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td>@song.name</td>
+                                <td>@if(song.isExcluded) {
+                                    <button class="btn btn-info btn-mini include-btn" data-path="@song.root">Include</button>
+                                }</td>
+                            </tr>
+                        }
+                        }
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+    }
+</div>
+
+<script>
+    $(".include-btn").click(function (event) {
+        console.log($(event.srcElement).data('path'));
+        $.ajax({
+          type: 'POST',
+          url: "/includePath",
+          data: {
+              inIndex: "@inIndex",
+              path: $(event.srcElement).data('path')
+          },
+          success: function(data) {console.log(data)},
+          dataType: "json"
+        });
+    });
+</script>
+}

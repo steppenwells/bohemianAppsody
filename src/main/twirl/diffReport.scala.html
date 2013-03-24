@@ -41,6 +41,7 @@ diffSettings: com.swells.sonas.model.DiffSettings)
                     <th>Album</th>
                     <th>Song</th>
                     <th></th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -49,14 +50,16 @@ diffSettings: com.swells.sonas.model.DiffSettings)
                     <td>@artist.name</td>
                     <td></td>
                     <td></td>
-                    <td><button class="btn btn-info btn-mini copy-btn" id="@artist.root" >Copy</button></td>
+                    <td><button class="btn btn-danger btn-mini exclude-btn" data-path="@artist.root" >Exclude</button></td>
+                    <td><button class="btn btn-info btn-mini copy-btn" data-path="@artist.root" >Copy</button></td>
                 </tr>
                 @for(album <- artist.albums) {
                     <tr>
                         <td></td>
                         <td>@album.name</td>
                         <td>@album.songs.size</td>
-                        <td><button class="btn btn-info btn-mini copy-btn" id="@album.root">Copy</button></td>
+                        <td><button class="btn btn-danger btn-mini exclude-btn" data-path="@album.root">Exclude</button></td>
+                        <td><button class="btn btn-info btn-mini copy-btn" data-path="@album.root">Copy</button></td>
                     </tr>
                         @if(showSongs) {
                         @for(song <- album.songs) {
@@ -64,7 +67,8 @@ diffSettings: com.swells.sonas.model.DiffSettings)
                                 <td></td>
                                 <td></td>
                                 <td>@song.name</td>
-                                <td><button class="btn btn-info btn-mini copy-btn" id="@song.root">Copy</button></td>
+                                <td><button class="btn btn-danger btn-mini exclude-btn" data-path="@song.root">Exclude</button></td>
+                                <td><button class="btn btn-info btn-mini copy-btn" data-path="@song.root">Copy</button></td>
                             </tr>
                         }
                         }
@@ -78,16 +82,30 @@ diffSettings: com.swells.sonas.model.DiffSettings)
 
 <script>
     $(".copy-btn").click(function (event) {
-        console.log(event.srcElement.id);
+        console.log($(event.srcElement).data('path'));
         $.ajax({
           type: 'POST',
           url: "/enqueueCopy",
           data: {
               fromIndex: "@inIndex",
               toIndex: "@notInIndex",
-              path: event.srcElement.id,
+              path: $(event.srcElement).data('path'),
               ignoreArtwork: "@diffSettings.ignoreArtwork",
               fuzzyMatch: "@diffSettings.fuzzyMatch"
+          },
+          success: function(data) {console.log(data)},
+          dataType: "json"
+        });
+    });
+
+    $(".exclude-btn").click(function (event) {
+        console.log($(event.srcElement).data('path'));
+        $.ajax({
+          type: 'POST',
+          url: "/excludePath",
+          data: {
+              inIndex: "@inIndex",
+              path: $(event.srcElement).data('path')
           },
           success: function(data) {console.log(data)},
           dataType: "json"
