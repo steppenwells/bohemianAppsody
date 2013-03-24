@@ -8,11 +8,17 @@ import org.json4s.native.Serialization.{read, write}
 
 case class DiffSettings(ignoreArtwork: Boolean, fuzzyMatch: Boolean)
 
+object DiffSettings {
+  val FileCopyDiffSettings = DiffSettings(false, false)
+}
+
 case class MusicIndex(root: String, artists: List[ArtistIndex]) {
 
   lazy val Allow_Fuzzy_Threshold = 30
 
-  def refresh = MusicIndex(Path(root.replace("\\", "/"), '/'))
+  def refresh = MusicIndex(rootPath)
+
+  def rootPath = Path(root.replace("\\", "/"), '/')
 
   def toJson = MusicIndex.toJson(this)
 
@@ -35,6 +41,24 @@ case class MusicIndex(root: String, artists: List[ArtistIndex]) {
       artists.find(a => a.name.startsWith(name) || name.startsWith(a.name))
     else
       artists.find(_.name == name)
+  }
+
+  def fileAdded(pathString: String) = {
+    implicit val diffSettings = DiffSettings.FileCopyDiffSettings
+
+    val path = Path(pathString.replace("\\", "/"), '/')
+    val relativePath = path.relativize(rootPath)
+
+    getArtist(relativePath.segments.head) match {
+      case Some(artist) => {
+        val updatedArtist = artist.fileAdded(path)
+        copy(artists = (updatedArtist :: artists.filterNot(_ == artist)).sortBy(_.name))
+      }
+      case None => {
+        val a = ArtistIndex(rootPath / relativePath.segments.head)
+        copy(artists = (a :: artists).sortBy(_.name))
+      }
+    }
   }
 
   def subIndex(path: String) = {
@@ -68,6 +92,8 @@ object MusicIndex {
 case class ArtistIndex(root: String, name: String, albums: List[AlbumIndex]) {
   lazy val Allow_Fuzzy_Threshold = 30
 
+  def rootPath = Path(root.replace("\\", "/"), '/')
+
   def -(other: ArtistIndex)(implicit diffSettings: DiffSettings) = {
     val diffAlbums = albums.flatMap { a =>
       other.getAlbum(a.name) match {
@@ -87,6 +113,22 @@ case class ArtistIndex(root: String, name: String, albums: List[AlbumIndex]) {
       albums.find(a => a.name.startsWith(name) || name.startsWith(a.name))
     else
       albums.find(_.name == name)
+  }
+
+  def fileAdded(path: Path) = {
+    implicit val diffSettings = DiffSettings.FileCopyDiffSettings
+    val relativePath = path.relativize(rootPath)
+
+    getAlbum(relativePath.segments.head) match {
+      case Some(album) => {
+        val updatedArtist = album.fileAdded(path)
+        copy(albums = (updatedArtist :: albums.filterNot(_ == album)).sortBy(_.name))
+      }
+      case None => {
+        val a = AlbumIndex(rootPath / relativePath.segments.head)
+        copy(albums = (a :: albums).sortBy(_.name))
+      }
+    }
   }
 
   def subIndex(path: String) = {
@@ -124,6 +166,8 @@ case class AlbumIndex(root: String, name: String, songs: List[Song]) {
 
   lazy val Allow_Fuzzy_Threshold = 30
 
+  def rootPath = Path(root.replace("\\", "/"), '/')
+
   def -(other: AlbumIndex)(implicit diffSettings: DiffSettings) = {
     val validSongs = if (diffSettings.ignoreArtwork) songs.filterNot(_.name.startsWith("folder.")) else songs
     val diffSongs = validSongs.flatMap { song =>
@@ -145,6 +189,24 @@ case class AlbumIndex(root: String, name: String, songs: List[Song]) {
     } else
       songs.find(_.name == name)
   }
+
+  def fileAdded(path: Path) = {
+    implicit val diffSettings = DiffSettings.FileCopyDiffSettings
+
+    val relativePath = path.relativize(rootPath)
+
+    getSong(relativePath.segments.head) match {
+      case Some(song) => {
+        println("file already in index")
+        this
+      }
+      case None => {
+        val s = Song(path.path, path.name)
+        copy(songs = (s :: songs).sortBy(_.name))
+      }
+    }
+  }
+
 
   def subIndex(path: String) = {
     path match {

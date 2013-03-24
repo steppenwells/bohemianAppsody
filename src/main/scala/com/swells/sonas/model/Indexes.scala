@@ -41,6 +41,7 @@ object Indexes {
     val index = knownIndexes.find(_.name == name)
 
     index.foreach{ i =>
+      i.indexAgent.close // shut down old agent, this will be replaced.
       val refreshed = NamedMusicIndex(name, Agent(i.index.refresh))
       knownIndexes = (refreshed :: knownIndexes.filterNot(_.name == name)).sortBy(_.name)
     }
@@ -55,5 +56,7 @@ object Indexes {
 }
 
 case class NamedMusicIndex(name: String, indexAgent: Agent[MusicIndex]) {
+  def fileAdded(addedPath: String) { indexAgent send (_.fileAdded(addedPath))}
+
   def index = indexAgent.get
 }

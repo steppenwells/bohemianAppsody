@@ -11,6 +11,7 @@ import java.net.URL
 import javax.imageio.ImageIO
 import java.awt.image.BufferedImage
 import java.awt.Color
+import com.swells.sonas.model.NamedMusicIndex
 
 trait Job extends Logging {
 
@@ -20,12 +21,13 @@ trait Job extends Logging {
 
 }
 
-class CopyJob(srcPath: String, destPath: String) extends Job {
+class CopyJob(srcPath: String, destPath: String, destIndex: NamedMusicIndex) extends Job {
 
   def description = "copy %s -> %s".format(srcPath, destPath)
 
   def process {
     FileUtils.copyFile(new File(srcPath), new File(destPath))
+    destIndex.fileAdded(destPath)
   }
 }
 
@@ -41,8 +43,6 @@ class DownloadFileJob(srcUrl: String, imageExtension: String, destPath: String) 
       case ext => {
         log.debug("converting " + ext + " to jpg")
         val origImg = ImageIO.read(new URL(srcUrl))
-//        val rgbImg = new BufferedImage(origImg.getWidth(), origImg.getHeight(), BufferedImage.TYPE_INT_RGB)
-//        rgbImg.setData(origImg.getData())
 
         val rgbImg = new BufferedImage(origImg.getWidth(), origImg.getHeight(), BufferedImage.TYPE_INT_RGB);
         rgbImg.createGraphics().drawImage(origImg, 0, 0, Color.BLACK, null);
