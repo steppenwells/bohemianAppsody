@@ -31,15 +31,24 @@ class CopyJob(srcPath: String, destPath: String, destIndex: NamedMusicIndex) ext
   }
 }
 
-class DownloadFileJob(srcUrl: String, imageExtension: String, destPath: String) extends Job {
+class DownloadFileJob(srcUrl: String, imageExtension: String, destPath: String, destIndex: NamedMusicIndex) extends Job {
 
   def description = "download %s -> %s".format(srcUrl, destPath)
 
   def process {
-    imageExtension match {
-      case "jpg" => FileUtils.copyURLToFile(new URL(srcUrl), new File(destPath+".jpg"), 5000, 5000)
-      case "jpeg" => FileUtils.copyURLToFile(new URL(srcUrl), new File(destPath+".jpg"), 5000, 5000)
-      case "gif" => FileUtils.copyURLToFile(new URL(srcUrl), new File(destPath+".gif"), 5000, 5000)
+    val outputFile = imageExtension match {
+      case "jpg" => {
+        FileUtils.copyURLToFile(new URL(srcUrl), new File(destPath+".jpg"), 5000, 5000)
+        destPath+".jpg"
+      }
+      case "jpeg" => {
+        FileUtils.copyURLToFile(new URL(srcUrl), new File(destPath+".jpg"), 5000, 5000)
+        destPath+".jpg"
+      }
+      case "gif" => {
+        FileUtils.copyURLToFile(new URL(srcUrl), new File(destPath+".gif"), 5000, 5000)
+        destPath+".gif"
+      }
       case ext => {
         log.debug("converting " + ext + " to jpg")
         val origImg = ImageIO.read(new URL(srcUrl))
@@ -49,8 +58,10 @@ class DownloadFileJob(srcUrl: String, imageExtension: String, destPath: String) 
 
         ImageIO.write(rgbImg, "jpg", new File(destPath+".jpg"))
         log.debug("wrote converted file, width was " + rgbImg.getWidth)
+        destPath+".jpg"
       }
     }
+    destIndex.fileAdded(outputFile)
   }
 
 }
