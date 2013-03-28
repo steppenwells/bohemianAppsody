@@ -24,6 +24,7 @@ showSongs: Boolean = false
     @for(exclusionIndex <- exclusionIndexOpt) {
     <div class="row">
         <h2>Exclusions</h2>
+
         <table class="table table-striped table-condensed">
             <thead>
                 <tr>
@@ -35,35 +36,35 @@ showSongs: Boolean = false
             </thead>
             <tbody>
             @for(artist <- exclusionIndex.artists) {
-                <tr>
+                <tr data-artist="@artist.root">
                     <td>@artist.name</td>
                     <td></td>
                     <td></td>
                     <td>@if(artist.isExcluded) {
-                        <button class="btn btn-info btn-mini include-btn" data-path="@artist.root">Include</button>
+                        <button class="btn btn-info btn-mini include-btn" data-path="@artist.root" data-level="artist">Include</button>
                     }</td>
                 </tr>
                 @for(album <- artist.albums) {
-                    <tr>
+                    <tr data-artist="@artist.root" data-album="@album.root">
                         <td></td>
                         <td>@album.name</td>
                         <td>@album.songs.size</td>
                         <td>@if(album.isExcluded) {
-                            <button class="btn btn-info btn-mini include-btn" data-path="@album.root">Include</button>
+                            <button class="btn btn-info btn-mini include-btn" data-path="@album.root" data-level="album">Include</button>
                         }</td>
                     </tr>
                         @if(showSongs) {
                         @for(song <- album.songs) {
-                            <tr>
+                            <tr data-artist="@artist.root" data-album="@album.root" data-song="@song.root">
                                 <td></td>
                                 <td></td>
                                 <td>@song.name</td>
                                 <td>@if(song.isExcluded) {
-                                    <button class="btn btn-info btn-mini include-btn" data-path="@song.root">Include</button>
+                                    <button class="btn btn-info btn-mini include-btn" data-path="@song.root" data-level="song">Include</button>
                                 }</td>
                             </tr>
                         }
-                        }
+                    }
                 }
             }
             </tbody>
@@ -74,17 +75,28 @@ showSongs: Boolean = false
 
 <script>
     $(".include-btn").click(function (event) {
-        console.log($(event.srcElement).data('path'));
+        var path = $(event.srcElement).data('path');
+        var level = $(event.srcElement).data('level');
+
         $.ajax({
           type: 'POST',
           url: "/includePath",
           data: {
               inIndex: "@inIndex",
-              path: $(event.srcElement).data('path')
+              path: path
           },
-          success: function(data) {console.log(data)},
+          success: function(data) {
+              collapseAndRemove(level, path);
+          },
           dataType: "json"
         });
     });
+
+    function collapseAndRemove(level, path) {
+        var toRemove = $("[data-" + level + "='" + path + "']")
+        for(var i=0; i < toRemove.length; i++){
+            var e = $(toRemove[i]).remove();
+        }
+    }
 </script>
 }

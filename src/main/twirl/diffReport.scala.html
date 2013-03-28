@@ -46,29 +46,29 @@ diffSettings: com.swells.sonas.model.DiffSettings)
             </thead>
             <tbody>
             @for(artist <- diffIndex.artists) {
-                <tr>
+                <tr data-artist="@artist.root">
                     <td>@artist.name</td>
                     <td></td>
                     <td></td>
-                    <td><button class="btn btn-danger btn-mini exclude-btn" data-path="@artist.root" >Exclude</button></td>
-                    <td><button class="btn btn-info btn-mini copy-btn" data-path="@artist.root" >Copy</button></td>
+                    <td><button class="btn btn-danger btn-mini exclude-btn" data-path="@artist.root" data-level="artist">Exclude</button></td>
+                    <td><button class="btn btn-info btn-mini copy-btn" data-path="@artist.root" data-level="artist">Copy</button></td>
                 </tr>
                 @for(album <- artist.albums) {
-                    <tr>
+                    <tr data-artist="@artist.root" data-album="@album.root">
                         <td></td>
                         <td>@album.name</td>
                         <td>@album.songs.size</td>
-                        <td><button class="btn btn-danger btn-mini exclude-btn" data-path="@album.root">Exclude</button></td>
-                        <td><button class="btn btn-info btn-mini copy-btn" data-path="@album.root">Copy</button></td>
+                        <td><button class="btn btn-danger btn-mini exclude-btn" data-path="@album.root" data-level="album">Exclude</button></td>
+                        <td><button class="btn btn-info btn-mini copy-btn" data-path="@album.root" data-level="album">Copy</button></td>
                     </tr>
                         @if(showSongs) {
                         @for(song <- album.songs) {
-                            <tr>
+                            <tr data-artist="@artist.root" data-album="@album.root" data-song="@song.root">
                                 <td></td>
                                 <td></td>
                                 <td>@song.name</td>
-                                <td><button class="btn btn-danger btn-mini exclude-btn" data-path="@song.root">Exclude</button></td>
-                                <td><button class="btn btn-info btn-mini copy-btn" data-path="@song.root">Copy</button></td>
+                                <td><button class="btn btn-danger btn-mini exclude-btn" data-path="@song.root" data-level="song">Exclude</button></td>
+                                <td><button class="btn btn-info btn-mini copy-btn" data-path="@song.root" data-level="song">Copy</button></td>
                             </tr>
                         }
                         }
@@ -82,34 +82,50 @@ diffSettings: com.swells.sonas.model.DiffSettings)
 
 <script>
     $(".copy-btn").click(function (event) {
-        console.log($(event.srcElement).data('path'));
+        var path = $(event.srcElement).data('path');
+        var level = $(event.srcElement).data('level');
+
         $.ajax({
           type: 'POST',
           url: "/enqueueCopy",
           data: {
               fromIndex: "@inIndex",
               toIndex: "@notInIndex",
-              path: $(event.srcElement).data('path'),
+              path: path,
               ignoreArtwork: "@diffSettings.ignoreArtwork",
               fuzzyMatch: "@diffSettings.fuzzyMatch"
           },
-          success: function(data) {console.log(data)},
+          success: function(data) {
+              console.log(data);
+              collapseAndRemove(level, path);
+          },
           dataType: "json"
         });
     });
 
     $(".exclude-btn").click(function (event) {
-        console.log($(event.srcElement).data('path'));
+        var path = $(event.srcElement).data('path');
+        var level = $(event.srcElement).data('level');
+
         $.ajax({
           type: 'POST',
           url: "/excludePath",
           data: {
               inIndex: "@inIndex",
-              path: $(event.srcElement).data('path')
+              path: path
           },
-          success: function(data) {console.log(data)},
+          success: function(data) {
+              collapseAndRemove(level, path);
+          },
           dataType: "json"
         });
     });
+
+    function collapseAndRemove(level, path) {
+        var toRemove = $("[data-" + level + "='" + path + "']")
+        for(var i=0; i < toRemove.length; i++){
+            var e = $(toRemove[i]).remove();
+        }
+    }
 </script>
 }
