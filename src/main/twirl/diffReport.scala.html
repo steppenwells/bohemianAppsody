@@ -33,7 +33,7 @@ diffSettings: com.swells.sonas.model.DiffSettings)
     @for(diffIndex <- diffIndexOpt) {
     <div class="row">
         <h2>Differences</h2>
-        <button class="btn btn-info btn-mini copy-btn" id="@diffIndex.root">Copy the lot</button>
+        <button class="btn btn-info btn-mini copy-btn" data-path="@diffIndex.root" data-level="top">Copy the lot</button>
         <table class="table table-striped table-condensed">
             <thead>
                 <tr>
@@ -122,9 +122,12 @@ diffSettings: com.swells.sonas.model.DiffSettings)
     });
 
     function collapseAndRemove(level, path) {
-        var toRemove = $("[data-" + level + "='" + path + "']")
-        for(var i=0; i < toRemove.length; i++){
-            var e = $(toRemove[i]).remove();
+        var candidates = $("[data-" + level +"]");
+        for(var i=0; i < candidates.length; i++) {
+            var e = $(candidates[i]);
+            if (e.data(level) == path) {
+                e.remove();
+            }
         }
     }
 </script>

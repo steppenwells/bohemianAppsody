@@ -93,9 +93,12 @@ showSongs: Boolean = false
     });
 
     function collapseAndRemove(level, path) {
-        var toRemove = $("[data-" + level + "='" + path + "']")
-        for(var i=0; i < toRemove.length; i++){
-            var e = $(toRemove[i]).remove();
+        var candidates = $("[data-" + level +"]");
+        for(var i=0; i < candidates.length; i++) {
+            var e = $(candidates[i]);
+            if (e.data(level) == path) {
+                e.remove();
+            }
         }
     }
 </script>
