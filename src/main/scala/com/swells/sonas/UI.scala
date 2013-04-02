@@ -96,7 +96,6 @@ class UI extends ScalatraServlet with Logging {
       new CopyJob(file, calculateDestination(notInIndex.index.root, inIndex.index.root, file), notInIndex)
     }
     jobs foreach { j => JobSystem.jobQueueActor ! Enqueue(j) }
-    filesToCopy.mkString("[", ",", "]")
 
   }
 
