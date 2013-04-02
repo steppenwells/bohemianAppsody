@@ -1,14 +1,15 @@
 @(inIndex: String,
 exclusionIndexOpt: Option[com.swells.sonas.model.MusicIndex],
 indexes: List[com.swells.sonas.model.NamedMusicIndex],
-showSongs: Boolean = false
+showSongs: Boolean = false,
+filter: Option[String] = Some("All")
 )
 
 @main("Bohemian Appsody - exclusions report") {
 <div class="container">
 
     <div class="row well">
-            <form action="exclusions" method="POST" class="form-inline">
+            <form action="exclusions" method="POST" class="form-inline" id="searchForm" >
                 Show exclusions in
                 <select name="inIndex">
                 @for(i <- indexes) {
@@ -17,9 +18,14 @@ showSongs: Boolean = false
                 </select>
 
                 show songs <input type="checkbox" name="showSongs" value="true" @if(showSongs){checked="true"}>
+                <input type="hidden" name="startsWith" id="startsWith" value="@filter.getOrElse("All")" >
                 <button type="submit" class="btn">go</button>
             </form>
         </div>
+
+    <div class="row">
+        @alphaPagination(filter)
+    </div>
 
     @for(exclusionIndex <- exclusionIndexOpt) {
     <div class="row">

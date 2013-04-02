@@ -25,6 +25,16 @@ case class MusicIndex(root: String, artists: List[ArtistIndex]) {
   def included = copy(artists = artists.flatMap{_.included})
   def excluded = copy(artists = artists.flatMap{_.excluded})
 
+  def startingWith(filter: Option[String]) = {
+    filter match {
+      case None => this
+      case Some("") => this
+      case Some("All") => this
+      case Some("@") => copy(artists = artists.filterNot(_.name.head.isLetter))
+      case Some(s) => copy(artists = artists.filter(_.name.toUpperCase.startsWith(s)))
+    }
+  }
+
   def -(other: MusicIndex)(implicit diffSettings: DiffSettings) = {
     val diffArtists = artists.flatMap { a =>
       other.getArtist(a.name) match {

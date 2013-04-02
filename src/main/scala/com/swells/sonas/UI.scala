@@ -45,7 +45,7 @@ class UI extends ScalatraServlet with Logging {
   }
 
   get("/diffReport") {
-    html.diffReport.render("", "", None, Indexes.knownIndexes, false, DiffSettings(true, true))
+    html.diffReport.render("", "", None, Indexes.knownIndexes, false, DiffSettings(true, true), Some("All"))
   }
 
   post("/diffReport") {
@@ -57,24 +57,24 @@ class UI extends ScalatraServlet with Logging {
       ignoreArtwork = params.get("ignoreArtwork").map(_.toBoolean).getOrElse(true),
       fuzzyMatch = params.get("fuzzyMatch").map(_.toBoolean).getOrElse(true)
     )
+    val filter = params.get("startsWith")
 
-    println(diffSettings)
+    val diffIndex = (inIndex.index - notInIndex.index).startingWith(filter)
 
-    val diffIndex = inIndex.index - notInIndex.index
-
-    html.diffReport.render(inIndex.name, notInIndex.name, Option(diffIndex), Indexes.knownIndexes, showSongs, diffSettings)
+    html.diffReport.render(inIndex.name, notInIndex.name, Option(diffIndex), Indexes.knownIndexes, showSongs, diffSettings, filter)
   }
 
   get("/exclusions") {
-    html.excludedReport.render("", None, Indexes.knownIndexes, false)
+    html.excludedReport.render("", None, Indexes.knownIndexes, false, Some("All"))
   }
 
   post("/exclusions") {
     val inIndex = Indexes(params("inIndex"))
-    val excludedItems = inIndex.excludedIndex
     val showSongs = params.get("showSongs").map(_.toBoolean).getOrElse(false)
+    val filter = params.get("startsWith")
+    val excludedItems = inIndex.excludedIndex.startingWith(filter)
 
-    html.excludedReport.render(inIndex.name, Option(excludedItems), Indexes.knownIndexes, showSongs)
+    html.excludedReport.render(inIndex.name, Option(excludedItems), Indexes.knownIndexes, showSongs, filter)
   }
 
   post("/enqueueCopy") {
