@@ -107,5 +107,11 @@ filter: Option[String] = Some("All")
             }
         }
     }
+
+    $(".filter-link").click(function (event) {
+        var startsWith = $(event.srcElement).text();
+        $("#startsWith").val(startsWith);
+        $("#searchForm").submit();
+    });
 </script>
 }
