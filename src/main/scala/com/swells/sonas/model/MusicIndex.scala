@@ -16,7 +16,10 @@ case class MusicIndex(root: String, artists: List[ArtistIndex]) {
 
   lazy val Allow_Fuzzy_Threshold = 30
 
-  def refresh = MusicIndex(rootPath)
+  def refresh = {
+    val excludedPaths = getExcludedPaths
+    excludedPaths.foldLeft(MusicIndex(rootPath)) {(ind, path) => ind.exclude(path)}
+  }
 
   def rootPath = Path(root.replace("\\", "/"), '/')
 
@@ -24,6 +27,8 @@ case class MusicIndex(root: String, artists: List[ArtistIndex]) {
 
   def included = copy(artists = artists.flatMap{_.included})
   def excluded = copy(artists = artists.flatMap{_.excluded})
+
+  def getExcludedPaths = artists.flatMap(_.getExcludedPaths)
 
   def startingWith(filter: Option[String]) = {
     filter match {
@@ -123,6 +128,13 @@ case class ArtistIndex(root: String, name: String, albums: List[AlbumIndex], isE
     }
   }
 
+  def getExcludedPaths = {
+    if(isExcluded)
+      root :: albums.flatMap(_.getExcludedPaths)
+    else
+      albums.flatMap(_.getExcludedPaths)
+  }
+
   def -(other: ArtistIndex)(implicit diffSettings: DiffSettings) = {
     val diffAlbums = albums.flatMap { a =>
       other.getAlbum(a.name) match {
@@ -217,6 +229,13 @@ case class AlbumIndex(root: String, name: String, songs: List[Song], isExcluded:
       case Nil => None
       case es => Some(copy(songs = es))
     }
+  }
+
+  def getExcludedPaths = {
+    if(isExcluded)
+      root :: songs.filter(_.isExcluded).map(_.root)
+    else
+      songs.filter(_.isExcluded).map(_.root)
   }
 
   def -(other: AlbumIndex)(implicit diffSettings: DiffSettings) = {
