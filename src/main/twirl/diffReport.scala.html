@@ -11,27 +11,36 @@ filter: Option[String] = Some("All")
 <div class="container">
 
     <div class="row well">
-            <form action="diffReport" method="POST" class="form-inline" id="searchForm">
-                Find music in
-                <select name="inIndex">
-                @for(i <- indexes) {
-                    <option value="@i.name" @if(i.name == inIndex){selected="true"} >@i.name</option>
-                }
-                </select>
-                that is not in
-                <select name="notInIndex">
-                @for(i <- indexes) {
-                    <option value="@i.name" @if(i.name == notInIndex){selected="true"} >@i.name</option>
-                }
-                </select>
+        <form action="diffReport" method="POST" class="form-inline" id="searchForm">
+            Find music in
+            <select name="inIndex">
+            @for(i <- indexes) {
+                <option value="@i.name" @if(i.name == inIndex){selected="true"} >@i.name</option>
+            }
+            </select>
+            that is not in
+            <select name="notInIndex">
+            @for(i <- indexes) {
+                <option value="@i.name" @if(i.name == notInIndex){selected="true"} >@i.name</option>
+            }
+            </select>
 
-                show songs <input type="checkbox" name="showSongs" value="true" @if(showSongs){checked="true"}>
-                show artwork <input type="checkbox" name="ignoreArtwork" value="false" @if(!diffSettings.ignoreArtwork){checked="true"}>
-                exact matching <input type="checkbox" name="fuzzyMatch" value="false" @if(!diffSettings.fuzzyMatch){checked="true"}>
-                <input type="hidden" name="startsWith" id="startsWith" value="@filter.getOrElse("All")" >
-                <button type="submit" class="btn">go</button>
-            </form>
-        </div>
+            show songs <input type="checkbox" name="showSongs" value="true" @if(showSongs){checked="true"}>
+            show artwork <input type="checkbox" name="ignoreArtwork" value="false" @if(!diffSettings.ignoreArtwork){checked="true"}>
+            exact matching <input type="checkbox" name="fuzzyMatch" value="false" @if(!diffSettings.fuzzyMatch){checked="true"}>
+            <input type="hidden" name="startsWith" id="startsWith" value="@filter.getOrElse("All")" >
+            <button type="submit" class="btn">go</button>
+        </form>
+    </div>
+
+    indexes:
+    @for(conn <- com.swells.sonas.model.IndexHealthCheck.isConnected(inIndex)) {
+    <p>@inIndex : connected @conn</p>
+    }
+
+    @for(conn <- com.swells.sonas.model.IndexHealthCheck.isConnected(notInIndex)) {
+    <p>@notInIndex : connected @conn</p>
+    }
 
     <div class="row">
         @alphaPagination(filter)

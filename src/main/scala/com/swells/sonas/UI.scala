@@ -57,7 +57,7 @@ class UI extends ScalatraServlet with Logging {
       ignoreArtwork = params.get("ignoreArtwork").map(_.toBoolean).getOrElse(true),
       fuzzyMatch = params.get("fuzzyMatch").map(_.toBoolean).getOrElse(true)
     )
-    val filter = params.get("startsWith")
+    val filter = params.get("startsWith") orElse( Some("All"))
 
     val diffIndex = (inIndex.index - notInIndex.index).startingWith(filter)
 

@@ -68,3 +68,10 @@ case class NamedMusicIndex(name: String, indexAgent: Agent[MusicIndex]) {
   def index = indexInternal.included
   def excludedIndex = indexInternal.excluded
 }
+
+object IndexHealthCheck {
+  def isConnected(name: String) = {
+    val indexRoot = Indexes.knownIndexes.find(_.name == name).map(_.index.rootPath)
+    indexRoot.map(_.exists)
+  }
+}
