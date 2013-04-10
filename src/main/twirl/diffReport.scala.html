@@ -10,6 +10,8 @@ filter: Option[String] = Some("All")
 @import com.swells.sonas.model.IndexHealthCheck._
 
 @main("Bohemian Appsody - diff report") {
+
+@defining(isConnected(inIndex).getOrElse(false) && isConnected(notInIndex).getOrElse(false)) { healthy =>
 <div class="container">
 
     <div class="row well">
@@ -35,13 +37,17 @@ filter: Option[String] = Some("All")
         </form>
     </div>
 
-    indexes:
-    @for(conn <- isConnected(inIndex)) {
-    <p>@inIndex : connected @conn</p>
-    }
+    @if(!healthy) {
+    <div class="alert alert-error">
+        <p>Warning! one or more indexes are not connected:</p>
+        @for(conn <- isConnected(inIndex)) {
+        <p>@inIndex : connected @conn</p>
+        }
 
-    @for(conn <- isConnected(notInIndex)) {
-    <p>@notInIndex : connected @conn</p>
+        @for(conn <- isConnected(notInIndex)) {
+        <p>@notInIndex : connected @conn</p>
+        }
+    </div>
     }
 
     <div class="row">
@@ -154,4 +160,5 @@ filter: Option[String] = Some("All")
         $("#searchForm").submit();
     });
 </script>
+}
 }
