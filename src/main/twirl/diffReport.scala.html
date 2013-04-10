@@ -57,7 +57,7 @@ filter: Option[String] = Some("All")
     @for(diffIndex <- diffIndexOpt) {
     <div class="row">
         <h2>Differences</h2>
-        <button class="btn btn-info btn-mini copy-btn" data-path="@diffIndex.root" data-level="top">Copy the lot</button>
+        <button class="btn btn-info btn-mini copy-btn @if(!healthy){disabled}" data-path="@diffIndex.root" data-level="top">Copy the lot</button>
         <table class="table table-striped table-condensed">
             <thead>
                 <tr>
@@ -75,7 +75,7 @@ filter: Option[String] = Some("All")
                     <td></td>
                     <td></td>
                     <td><button class="btn btn-danger btn-mini exclude-btn" data-path="@artist.root" data-level="artist">Exclude</button></td>
-                    <td><button class="btn btn-info btn-mini copy-btn" data-path="@artist.root" data-level="artist">Copy</button></td>
+                    <td><button class="btn btn-info btn-mini copy-btn @if(!healthy){disabled}" data-path="@artist.root" data-level="artist">Copy</button></td>
                 </tr>
                 @for(album <- artist.albums) {
                     <tr data-artist="@artist.root" data-album="@album.root">
@@ -83,7 +83,7 @@ filter: Option[String] = Some("All")
                         <td>@album.name</td>
                         <td>@album.songs.size</td>
                         <td><button class="btn btn-danger btn-mini exclude-btn" data-path="@album.root" data-level="album">Exclude</button></td>
-                        <td><button class="btn btn-info btn-mini copy-btn" data-path="@album.root" data-level="album">Copy</button></td>
+                        <td><button class="btn btn-info btn-mini copy-btn @if(!healthy){disabled}" data-path="@album.root" data-level="album">Copy</button></td>
                     </tr>
                         @if(showSongs) {
                         @for(song <- album.songs) {
@@ -92,7 +92,7 @@ filter: Option[String] = Some("All")
                                 <td></td>
                                 <td>@song.name</td>
                                 <td><button class="btn btn-danger btn-mini exclude-btn" data-path="@song.root" data-level="song">Exclude</button></td>
-                                <td><button class="btn btn-info btn-mini copy-btn" data-path="@song.root" data-level="song">Copy</button></td>
+                                <td><button class="btn btn-info btn-mini copy-btn @if(!healthy){disabled}" data-path="@song.root" data-level="song">Copy</button></td>
                             </tr>
                         }
                         }
@@ -106,24 +106,26 @@ filter: Option[String] = Some("All")
 
 <script>
     $(".copy-btn").click(function (event) {
-        var path = $(event.srcElement).data('path');
-        var level = $(event.srcElement).data('level');
+        if(@healthy) {
+            var path = $(event.srcElement).data('path');
+            var level = $(event.srcElement).data('level');
 
-        $.ajax({
-          type: 'POST',
-          url: "/enqueueCopy",
-          data: {
-              fromIndex: "@inIndex",
-              toIndex: "@notInIndex",
-              path: path,
-              ignoreArtwork: "@diffSettings.ignoreArtwork",
-              fuzzyMatch: "@diffSettings.fuzzyMatch"
-          },
-          success: function(data) {
-              collapseAndRemove(level, path);
-          },
-          dataType: "json"
-        });
+            $.ajax({
+              type: 'POST',
+              url: "/enqueueCopy",
+              data: {
+                  fromIndex: "@inIndex",
+                  toIndex: "@notInIndex",
+                  path: path,
+                  ignoreArtwork: "@diffSettings.ignoreArtwork",
+                  fuzzyMatch: "@diffSettings.fuzzyMatch"
+              },
+              success: function(data) {
+                  collapseAndRemove(level, path);
+              },
+              dataType: "json"
+            });
+        }
     });
 
     $(".exclude-btn").click(function (event) {
