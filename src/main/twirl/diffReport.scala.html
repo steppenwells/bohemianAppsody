@@ -7,6 +7,8 @@ diffSettings: com.swells.sonas.model.DiffSettings,
 filter: Option[String] = Some("All")
 )
 
+@import com.swells.sonas.model.IndexHealthCheck._
+
 @main("Bohemian Appsody - diff report") {
 <div class="container">
 
@@ -34,11 +36,11 @@ filter: Option[String] = Some("All")
     </div>
 
     indexes:
-    @for(conn <- com.swells.sonas.model.IndexHealthCheck.isConnected(inIndex)) {
+    @for(conn <- isConnected(inIndex)) {
     <p>@inIndex : connected @conn</p>
     }
 
-    @for(conn <- com.swells.sonas.model.IndexHealthCheck.isConnected(notInIndex)) {
+    @for(conn <- isConnected(notInIndex)) {
     <p>@notInIndex : connected @conn</p>
     }
 
